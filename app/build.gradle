@@ -1,15 +1,21 @@
 apply plugin: 'com.android.application'
+apply plugin: 'maven'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion rootProject.ext.android["compileSdkVersion"]
+
     defaultConfig {
-        applicationId "com.db.bfa"
-        minSdkVersion 16
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+
+        minSdkVersion rootProject.ext.android["minSdkVersion"]
+        targetSdkVersion rootProject.ext.android["targetSdkVersion"]
+
+        applicationId rootProject.ext.app["applicationId"]
+        versionCode rootProject.ext.app["versionCode"]
+        versionName rootProject.ext.app["versionName"]
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -20,8 +26,108 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    implementation rootProject.ext.dependencies['constraint-layout']
+
+    testImplementation rootProject.ext.test['junit']
+    androidTestImplementation rootProject.ext.test['runner']
+    androidTestImplementation rootProject.ext.test['espresso']
+
+    implementation project(':FunBasic')
 }
+
+// AAR文件打包
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            //远程服务器：
+            // repository(url: "http://www.xxx.com/repos") {
+            //    authentication(userName: "admin", password: "admin")
+            // }
+            pom.groupId = rootProject.ext.panosdk['groupId']
+            pom.artifactId = rootProject.ext.panosdk['artifactId']
+            pom.version = rootProject.ext.panosdk['version']
+            repository(url: rootProject.ext.panosdk['repository'])
+        }
+    }
+}
+
+// build aar
+def makeJar(String target, String classDir) {
+    exec {
+        executable "jar"   //??jar
+        args "cvf", target
+        args "-C", classDir
+        args "", "."
+    }
+}
+
+task buildLib(dependsOn: ['build']) << {
+    makeJar("PanoShareSDK.jar", "build/intermediates/classes/release")
+}
+
+//删除dynamic.jar包任务
+task clearJar(type: Delete) {
+    delete 'buildbs/PanoShareSDK.jar'
+}
+
+//打包任务
+task makeJar_release(type: org.gradle.api.tasks.bundling.Jar) {
+//指定生成的jar名
+    baseName 'PanoShareSDK-release'
+//从哪里打包class文件
+
+    //from('build/generated/source/r/debug')
+    from('build/intermediates/classes/release')
+    //from('build/intermediates/classes/release/com')
+
+// 将assets目录打入jar包
+    //from fileTree(dir:'assets')
+
+//打包到jar后的目录结构
+    //into('/com/')
+    into('/')
+//去掉不需要打包的目录和文件
+    exclude('**/R.class')
+    exclude('**/BuildConfig.class')
+//去掉R$开头的文件
+    exclude { it.name.startsWith('R$'); }
+}
+
+//打包任务
+task makeJar_desktop(type: org.gradle.api.tasks.bundling.Jar) {
+//指定生成的jar名
+    baseName 'PanoShareSDKDesktop'
+//从哪里打包class文件
+
+    //from('build/generated/source/r/debug')
+    from('build/intermediates/classes/release/java')
+//打包到jar后的目录结构
+    into('/java/')
+//去掉不需要打包的目录和文件
+    exclude('**/R.class')
+    exclude('**/BuildConfig.class')
+//去掉R$开头的文件
+    exclude { it.name.startsWith('R$'); }
+}
+makeJar_release.dependsOn(clearJar, build)
+
+//打包任务
+task makeJar_debug(type: org.gradle.api.tasks.bundling.Jar) {
+//指定生成的jar名
+    baseName 'PanoShareSDK-debug'
+//从哪里打包class文件
+    from('build/intermediates/classes/debug/com')
+//打包到jar后的目录结构
+    into('/com/')
+//去掉不需要打包的目录和文件
+    //exclude('**/R.class')
+    exclude('**/BuildConfig.class')
+//去掉R$开头的文件
+    exclude { it.name.startsWith('R$'); }
+}
+makeJar_debug.dependsOn(clearJar, build)
+
+
+
+
