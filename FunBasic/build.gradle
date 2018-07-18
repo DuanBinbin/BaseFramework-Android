@@ -29,4 +29,10 @@ dependencies {
 
     implementation rootProject.ext.dependencies["appcompat-v7"]
     implementation rootProject.ext.dependencies["constraint-layout"]
+    implementation rootProject.ext.dependencies["recyclerview-v7"]
+
+    // 检测内存泄漏
+    debugCompile rootProject.ext.dependencies["debugCompile"]
+    releaseCompile rootProject.ext.dependencies["releaseCompile"]
+
 }

@@ -3,7 +3,7 @@ package com.db.bfa;
 import android.app.Activity;
 import android.os.Bundle;
 
-import com.db.basic.Singleton.EasySingleton;
+import com.db.basic.singleton.EasySingleton;
 
 public class MainActivity extends Activity {
 

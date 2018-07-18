@@ -1,4 +1,4 @@
-package com.db.basic.Singleton;
+package com.db.basic.singleton;
 
 /**
  * @描述：     @
