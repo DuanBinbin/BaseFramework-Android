@@ -1,5 +1,7 @@
 package com.db.basic.utils;
 
+import android.os.Build;
+
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -35,7 +37,9 @@ public final class CloseUtil {
     public static final void closeQuietly(AutoCloseable closeable) {
         if (closeable != null) {
             try {
-                closeable.close();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    closeable.close();
+                }
             } catch (RuntimeException rethrown) {
                 throw rethrown;
             } catch (Exception ignored) {
@@ -47,14 +51,11 @@ public final class CloseUtil {
      * 安静关闭IO
      * @param closeables closeables
      */
-    public static final void closeIOQuietly(final Closeable... closeables) {
+    public static final void closeIOQuietly(final Closeable... closeables) throws IOException {
         if (closeables == null) return;
         for (Closeable closeable : closeables) {
             if (closeable != null) {
-                try {
-                    closeable.close();
-                } catch (IOException ignored) {
-                }
+                closeable.close();
             }
         }
     }
